@@ -33,3 +33,11 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
      
       - run: yarn lint
+      - run:
+          name: Build app in production mode
+          command: |
+            yarn build --prod
+      - run:
+          name: Deploy app to firebase
+          command: |
+            ./node_modules/.bin/firebase deploy --token=$FIREBASE_TOKEN
