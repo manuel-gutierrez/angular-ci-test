@@ -40,4 +40,15 @@ jobs:
       - run:
           name: Deploy app to firebase
           command: |
-           firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
+           ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
+          workflows:
+            version: 2
+            -deploy:
+              jobs:
+                - build-job
+                - deploy-job:
+                    requires:
+                      - build-job
+                    filters:
+                      branches:
+                        only: master
