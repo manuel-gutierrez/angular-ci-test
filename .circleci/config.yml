@@ -37,27 +37,18 @@ jobs:
           name: Build app in production mode
           command: |
             yarn build --prod
-      - run: 
-          name: Run frontend tests
+      - run:
+          name: Deploy app to firebase
           command: |
-            npm test --code-coverage         
-            ./tmp/cc-test-reporter format-coverage -t lcov -o tmp/codeclimate.frontend.json coverage/lcov.info
-      - run:
-            name: Upload coverage results to Code Climate
-            command: |
-              ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.frontend.json        
-      - run:
-            name: Deploy app to firebase
-            command: |
-            ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
-            workflows:
-              version: 2
-              -deploy:
-                jobs:
-                  - build-job
-                  - deploy-job:
-                      requires:
-                        - build-job
-                      filters:
-                        branches:
-                          only: master
+           ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
+          workflows:
+            version: 2
+            -deploy:
+              jobs:
+                - build-job
+                - deploy-job:
+                    requires:
+                      - build-job
+                    filters:
+                      branches:
+                        only: master
