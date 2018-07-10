@@ -37,55 +37,27 @@ jobs:
           name: Build app in production mode
           command: |
             yarn build --prod
+      - run: 
+          name: Run frontend tests
+          command: |
+            npm test --code-coverage         
+            ./tmp/cc-test-reporter format-coverage -t lcov -o tmp/codeclimate.frontend.json coverage/lcov.info
       - run:
-          name: Deploy app to firebase
-          command: |
-           ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
-          workflows:
-            version: 2
-            -deploy:
-              jobs:
-                - build-job
-                - deploy-job:
-                    requires:
-                      - build-job
-                    filters:
-                      branches:
-                        only: master
-            - run: 
-          name: Run frontend testss
-          command: |
-            npm test
-            ./tmp/cc-test-reporter format-coverage -t lcov -o tmp/codeclimate.frontend.json coverage/frontend/lcov.info
-      - persist_to_workspace:
-          root: tmp
-          paths: 
-            - codeclimate.frontend.json
-         upload-coverage:
-          <<: *defaults
-         environment: 
-          - CC_TEST_REPORTER_ID: CC_TEST_REPORTER_ID
-         steps:
-      - attach_workspace:
-          at: ~/repo/tmp
+            name: Upload coverage results to Code Climate
+            command: |
+              ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.frontend.json        
       - run:
-          name: Upload coverage results to Code Climate
-          command: |
-            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 2 -o tmp/codeclimate.total.json
-              ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
-          workflows:
-            version: 2
-
-          commit:
-            jobs:
-              - build
-              - backend-tests:
-                  requires:
-                    - build
-              - frontend-tests: 
-                  requires: 
-                    - build
-              - upload-coverage:
-                  requires:
-                    - backend-tests
-                    - frontend-tests
+            name: Deploy app to firebase
+            command: |
+            ./node_modules/.bin/firebase deploy --token=$FIREBASE_DEPLOY_TOKEN
+            workflows:
+              version: 2
+              -deploy:
+                jobs:
+                  - build-job
+                  - deploy-job:
+                      requires:
+                        - build-job
+                      filters:
+                        branches:
+                          only: master
