@@ -52,9 +52,12 @@ jobs:
                     filters:
                       branches:
                         only: master
+      - run: 
+          name: Run frontend tests
+          command: |
+            npm test --code-coverage         
+            ./tmp/cc-test-reporter format-coverage -t lcov -o tmp/codeclimate.frontend.json coverage/lcov.info
       - run:
-          name: angular-test
-          command: yarn test -- --single-run --no-progress
-      - store_artifacts:
-          path: test-results.xml
-          prefix: tests
+          name: Upload coverage results to Code Climate
+          command: |
+            ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.frontend.json
